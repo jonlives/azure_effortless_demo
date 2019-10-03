@@ -1,0 +1,71 @@
+{
+    "variables": {
+        "client_id": "{{env `ARM_CLIENT_ID`}}",
+        "client_secret": "{{env `ARM_CLIENT_SECRET`}}",
+        "subscription_id": "{{env `ARM_SUBSCRIPTION_ID`}}",
+        "tenant_id": "{{env `ARM_TENANT_ID`}}",
+        "managed_image_resource_group_name": "{{env `TF_RESOURCE_GROUP_NAME`}}",
+        "managed_image_name": "{{env `TF_MANAGED_IMAGE_NAME`}}"    
+      },
+    "builders": [{
+      "type": "azure-arm",
+  
+      "client_id": "{{user `client_id`}}",
+      "client_secret": "{{user `client_secret`}}",
+      "tenant_id": "{{user `tenant_id`}}",
+      "subscription_id": "{{user `subscription_id`}}",
+  
+      "managed_image_resource_group_name": "{{user `managed_image_resource_group_name`}}",
+      "managed_image_name": "{{user `managed_image_name`}}",
+  
+      "os_type": "Windows",
+      "image_publisher": "MicrosoftWindowsServer",
+      "image_offer": "WindowsServer",
+      "image_sku": "2016-Datacenter",
+  
+      "communicator": "winrm",
+      "winrm_use_ssl": true,
+      "winrm_insecure": true,
+      "winrm_timeout": "5m",
+      "winrm_username": "packer",
+  
+      "location": "East US",
+      "vm_size": "Standard_E2s_v3"
+    }],
+    "provisioners": [
+        {
+          "type": "file",
+          "source": "packer/inspec/inspec-a2.json",
+          "destination": "/tmp/inspec-a2.json"
+        },
+        {
+        "type": "powershell",
+        "inline": [
+          "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))",
+          "C:/ProgramData/chocolatey/choco install habitat -y",
+          "New-NetFirewallRule -DisplayName \"Habitat TCP\" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 9631,9638",
+          "New-NetFirewallRule -DisplayName \"Habitat UDP\" -Direction Inbound -Action Allow -Protocol UDP -LocalPort 9638",
+          "C:\\ProgramData\\chocolatey\\bin\\hab license accept",
+          "C:\\ProgramData\\chocolatey\\bin\\hab pkg install core/windows-service",
+          "C:\\ProgramData\\chocolatey\\bin\\hab pkg exec core/windows-service install",
+          "C:\\ProgramData\\chocolatey\\bin\\hab pkg install core/hab-sup",
+          "C:\\ProgramData\\chocolatey\\bin\\hab pkg install effortless/config-baseline",
+          "C:\\ProgramData\\chocolatey\\bin\\hab pkg install effortless/audit-baseline",
+          "$env:PATH = \"$(hab pkg path stuartpreston/chef-client-detox)/bin;$(hab pkg path stuartpreston/inspec)/bin;$env:PATH\"",
+          "cd (C:/ProgramData/chocolatey/bin/hab.exe pkg path effortless/config-baseline)",
+          "Write-Host 'Starting Chef Client Run'",
+          "chef-client -z -c config/bootstrap-config.rb",
+          "Write-Host 'Starting Inspec Run'",
+          "Write-Host Inspec Path is \"$(hab pkg path effortless/audit-baseline)\"",
+          "inspec exec \"$(hab pkg path effortless/audit-baseline)/*.tar.gz\" --no-distinct-exit --json-config /tmp/inspec-a2.json",
+          "if($lastexitcode -ne 0) {Write-Output \"InSpec run failed check Automate for results\";exit 1}"
+        ]
+      },
+      {
+      "type": "powershell",
+      "inline": [
+        "& $env:SystemRoot\\System32\\Sysprep\\Sysprep.exe /oobe /generalize /quiet /quit",
+        "while($true) { $imageState = Get-ItemProperty HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Setup\\State | Select ImageState; if($imageState.ImageState -ne 'IMAGE_STATE_GENERALIZE_RESEAL_TO_OOBE') { Write-Output $imageState.ImageState; Start-Sleep -s 10  } else { break } }"
+      ]
+    }]
+  }

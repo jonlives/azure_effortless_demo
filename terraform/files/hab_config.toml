@@ -1,0 +1,11 @@
+ssl_verify_mode = ":verify_none"
+[data_collector]
+enable = true
+server_url = "https://__automate_fqdn__/data-collector/v0/"
+token = '__chef_automate_token__'
+
+[automate]
+enable = true
+server_url = "https://__automate_fqdn__/data-collector/v0/"
+token = '__chef_automate_token__'
+user = '__automate_credentials_username__'
