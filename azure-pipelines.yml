@@ -61,6 +61,7 @@ jobs:
   steps:
   - task: AzureResourceGroupDeployment@2
     displayName: 'Clean up A2 Resource Group'
+    continueOnError: true
     inputs:
       azureSubscription: '$(ARM_SUBSCRIPTION_NAME) ($(ARM_SUBSCRIPTION_ID))'
       action: 'DeleteRG'
