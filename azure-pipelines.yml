@@ -93,7 +93,7 @@ jobs:
       script: |
         curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
         hab license accept
-        hab pkg install jonlives/packer
+        hab pkg install core/packer
   - task: PackerBuild@1
     displayName: 'Packer Build'
     inputs:
