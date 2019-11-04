@@ -55,6 +55,51 @@ jobs:
       templateType: 'custom'
       customTemplateLocation: 'packer/windows-2016.json'
       imageUri: 'effortless-windows-2016'     
+- job: Linux_Image_Build
+  dependsOn: Provision_A2
+  variables:
+    automate_fqdn: $[ dependencies.Provision_A2.outputs['a2_set_vars.automate_fqdn'] ]
+    automate_credentials_username: $[ dependencies.Provision_A2.outputs['a2_set_vars.automate_credentials_username'] ]
+    automate_credentials_password: $[ dependencies.Provision_A2.outputs['a2_set_vars.automate_credentials_password'] ]
+    chef_automate_token: $[ dependencies.Provision_A2.outputs['a2_set_vars.chef_automate_token'] ]
+  pool:
+    vmImage: 'ubuntu-18.04'
+  steps:
+  - powershell: |
+        Write-Host "AUTOMATE_FQDN: $env:AUTOMATE_FQDN"
+        Write-Host "AUTOMATE_USERNAME: $env:AUTOMATE_USERNAME"
+        Write-Host "AUTOMATE_PASSWORD: $env:AUTOMATE_PASSWORD"
+        Write-Host "AUTOMATE_TOKEN: $env:AUTOMATE_TOKEN"
+    env:
+      AUTOMATE_FQDN: $(automate_fqdn)
+      AUTOMATE_USERNAME: $(automate_credentials_username)
+      AUTOMATE_PASSWORD: $(automate_credentials_password)
+      AUTOMATE_TOKEN: $(chef_automate_token)   
+  - task: replacetokens@3
+    displayName: "Populate Packer Inspec Config"
+    inputs:
+      rootDirectory: 'packer/inspec'
+      targetFiles: '**/*.json'
+      encoding: 'auto'
+      writeBOM: true
+      actionOnMissing: 'warn'
+      keepToken: false
+      tokenPrefix: '__'
+      tokenSuffix: '__'     
+  - task: vsts-habitat-install@3
+  - task: Bash@3
+    displayName: 'Install packer Habitat package'
+    inputs:
+      targetType: 'inline'
+      script: |
+        hab license accept
+        hab pkg install jonlives/packer
+  - task: PackerBuild@1
+    displayName: 'Packer Build'
+    inputs:
+      templateType: 'custom'
+      customTemplateLocation: 'packer/ubuntu-18-10.json'
+      imageUri: 'effortless-ubuntu-18-10'   
 - job: Provision_A2
   pool:
     vmImage: 'windows-2019'
