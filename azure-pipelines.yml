@@ -86,12 +86,12 @@ jobs:
       keepToken: false
       tokenPrefix: '__'
       tokenSuffix: '__'     
-  - task: vsts-habitat-install@3
   - task: Bash@3
     displayName: 'Install packer Habitat package'
     inputs:
       targetType: 'inline'
       script: |
+        curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
         hab license accept
         hab pkg install jonlives/packer
   - task: PackerBuild@1
