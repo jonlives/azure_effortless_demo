@@ -100,55 +100,55 @@ jobs:
       templateType: 'custom'
       customTemplateLocation: 'packer/ubuntu-18-10.json'
       imageUri: 'effortless-ubuntu-18-10'   
-# - job: Provision_A2
-#   pool:
-#     vmImage: 'windows-2019'
-#   steps:
-#   - task: AzureResourceGroupDeployment@2
-#     displayName: 'Clean up A2 Resource Group'
-#     continueOnError: true
-#     inputs:
-#       azureSubscription: '$(ARM_SUBSCRIPTION_NAME) ($(ARM_SUBSCRIPTION_ID))'
-#       action: 'DeleteRG'
-#       resourceGroupName: '$(ARM_RESOURCE_GROUP_NAME)'
-#   - task: AzureResourceGroupDeployment@2
-#     displayName: 'Deploy A2 ARM Template'
-#     inputs:
-#       azureSubscription: '$(ARM_SUBSCRIPTION_NAME) ($(ARM_SUBSCRIPTION_ID))'
-#       action: 'Create Or Update Resource Group'
-#       resourceGroupName: '$(ARM_RESOURCE_GROUP_NAME)'
-#       location: 'East US'
-#       templateLocation: 'URL of the file'
-#       csmFileLink: 'https://chefmanagedapp.blob.core.windows.net/files/mainTemplate.json'
-#       csmParametersFileLink: 'https://raw.githubusercontent.com/chef-partners/camsa-templates/master/samples/parameters.json'
-#       overrideParameters: '-prefix $(ARM_PREFIX) -virtualNetworkName $(ARM_PREFIX)network -customerResourceGroupName $(ARM_RESOURCE_GROUP_NAME) -subnetName $(ARM_PREFIX)subnet -chefUsername admin -chefUserFullname Admin -chefUserEmailaddress admin@example.com -chefUserPassword $(ARM_CHEF_PASSWORD) -chefOrg effortless -chefOrgDescription Effortless -sshSourceAddresses ["34.206.89.3/32"] -sshPublicKeys ["$(ARM_SSH_PUBLIC_KEY)"]'
-#       deploymentMode: 'Incremental' 
-#   - task: ARM Outputs@5
-#     displayName: 'Process ARM Deplopyment Outputs'
-#     inputs:
-#       ConnectedServiceNameSelector: 'ConnectedServiceNameARM'
-#       ConnectedServiceNameARM: '$(ARM_SUBSCRIPTION_NAME) ($(ARM_SUBSCRIPTION_ID))'
-#       resourceGroupName: '$(ARM_RESOURCE_GROUP_NAME)'
-#       prefix: 'camsa'
-#       whenLastDeploymentIsFailed: 'fail'   
-#   - powershell: |
-#         $params = @("automate_fqdn", "automate_credentials_username", "automate_credentials_password", "chef_automate_token")     
-#         foreach ($param in $params) {
-#           (Invoke-RestMethod -Uri https://$(ARM_PREFIX)-$(camsauniqueShort)-AppService.azurewebsites.net/api/config/${param}?code=$(camsaconfigStoreFunctionApiKey)).psobject.members | Where-Object membertype -like "noteproperty" | % { "##vso[task.setvariable variable={0};isOutput=true;]{1}" -f $_.name, $_.value }
-#         }
-#     name: a2_set_vars  
-#     displayName: 'Set A2 Pipeline Variables'
-#   - powershell: |
-#         Write-Host "AUTOMATE_FQDN: $env:AUTOMATE_FQDN"
-#         Write-Host "AUTOMATE_USERNAME: $env:AUTOMATE_USERNAME"
-#         Write-Host "AUTOMATE_PASSWORD: $env:AUTOMATE_PASSWORD"
-#         Write-Host "AUTOMATE_TOKEN: $env:AUTOMATE_TOKEN"
-#     displayName: 'Output A2 Settings'
-#     env:
-#       AUTOMATE_FQDN: $(a2_set_vars.automate_fqdn)
-#       AUTOMATE_USERNAME: $(a2_set_vars.automate_credentials_username)
-#       AUTOMATE_PASSWORD: $(a2_set_vars.automate_credentials_password)
-#       AUTOMATE_TOKEN: $(a2_set_vars.chef_automate_token)      
+- job: Provision_A2
+  pool:
+    vmImage: 'windows-2019'
+  steps:
+  - task: AzureResourceGroupDeployment@2
+    displayName: 'Clean up A2 Resource Group'
+    continueOnError: true
+    inputs:
+      azureSubscription: '$(ARM_SUBSCRIPTION_NAME) ($(ARM_SUBSCRIPTION_ID))'
+      action: 'DeleteRG'
+      resourceGroupName: '$(ARM_RESOURCE_GROUP_NAME)'
+  - task: AzureResourceGroupDeployment@2
+    displayName: 'Deploy A2 ARM Template'
+    inputs:
+      azureSubscription: '$(ARM_SUBSCRIPTION_NAME) ($(ARM_SUBSCRIPTION_ID))'
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: '$(ARM_RESOURCE_GROUP_NAME)'
+      location: 'East US'
+      templateLocation: 'URL of the file'
+      csmFileLink: 'https://chefmanagedapp.blob.core.windows.net/files/mainTemplate.json'
+      csmParametersFileLink: 'https://raw.githubusercontent.com/chef-partners/camsa-templates/master/samples/parameters.json'
+      overrideParameters: '-prefix $(ARM_PREFIX) -virtualNetworkName $(ARM_PREFIX)network -customerResourceGroupName $(ARM_RESOURCE_GROUP_NAME) -subnetName $(ARM_PREFIX)subnet -chefUsername admin -chefUserFullname Admin -chefUserEmailaddress admin@example.com -chefUserPassword $(ARM_CHEF_PASSWORD) -chefOrg effortless -chefOrgDescription Effortless -sshSourceAddresses ["34.206.89.3/32"] -sshPublicKeys ["$(ARM_SSH_PUBLIC_KEY)"]'
+      deploymentMode: 'Incremental' 
+  - task: ARM Outputs@5
+    displayName: 'Process ARM Deplopyment Outputs'
+    inputs:
+      ConnectedServiceNameSelector: 'ConnectedServiceNameARM'
+      ConnectedServiceNameARM: '$(ARM_SUBSCRIPTION_NAME) ($(ARM_SUBSCRIPTION_ID))'
+      resourceGroupName: '$(ARM_RESOURCE_GROUP_NAME)'
+      prefix: 'camsa'
+      whenLastDeploymentIsFailed: 'fail'   
+  - powershell: |
+        $params = @("automate_fqdn", "automate_credentials_username", "automate_credentials_password", "chef_automate_token")     
+        foreach ($param in $params) {
+          (Invoke-RestMethod -Uri https://$(ARM_PREFIX)-$(camsauniqueShort)-AppService.azurewebsites.net/api/config/${param}?code=$(camsaconfigStoreFunctionApiKey)).psobject.members | Where-Object membertype -like "noteproperty" | % { "##vso[task.setvariable variable={0};isOutput=true;]{1}" -f $_.name, $_.value }
+        }
+    name: a2_set_vars  
+    displayName: 'Set A2 Pipeline Variables'
+  - powershell: |
+        Write-Host "AUTOMATE_FQDN: $env:AUTOMATE_FQDN"
+        Write-Host "AUTOMATE_USERNAME: $env:AUTOMATE_USERNAME"
+        Write-Host "AUTOMATE_PASSWORD: $env:AUTOMATE_PASSWORD"
+        Write-Host "AUTOMATE_TOKEN: $env:AUTOMATE_TOKEN"
+    displayName: 'Output A2 Settings'
+    env:
+      AUTOMATE_FQDN: $(a2_set_vars.automate_fqdn)
+      AUTOMATE_USERNAME: $(a2_set_vars.automate_credentials_username)
+      AUTOMATE_PASSWORD: $(a2_set_vars.automate_credentials_password)
+      AUTOMATE_TOKEN: $(a2_set_vars.chef_automate_token)      
 # - job: Provision_Infrastructure
 #   dependsOn: 
 #     - Windows_Image_Build
