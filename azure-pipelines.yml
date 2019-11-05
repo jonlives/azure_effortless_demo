@@ -98,8 +98,8 @@ jobs:
     displayName: 'Packer Build'
     inputs:
       templateType: 'custom'
-      customTemplateLocation: 'packer/ubuntu-18-10.json'
-      imageUri: 'effortless-ubuntu-18-10'   
+      customTemplateLocation: 'packer/rhel-7.json'
+      imageUri: 'effortless-rhel-7'   
 - job: Provision_A2
   pool:
     vmImage: 'windows-2019'
