@@ -1,0 +1,14 @@
+{
+    "target_id": "6f5a8ba5-5677-4b97-9e6f-7919ee19ba48",
+    "reporter": {
+        "cli": {
+          "stdout": true
+        },  
+        "automate" : {
+          "url": "https://__automate_fqdn__/data-collector/v0/",
+          "token": "__chef_automate_token__",
+          "node_name": "packer-rhel-7",
+          "verify_ssl": false
+        }
+    }
+}

@@ -25,6 +25,10 @@ data "azurerm_image" "effortless-win2016" {
   resource_group_name = "__TF_RESOURCE_GROUP_NAME__"
 }
 
+data "azurerm_image" "effortless-rhel-7" {
+  name                = "__TF_MANAGED_IMAGE_NAME_RHEL__"
+  resource_group_name = "__TF_RESOURCE_GROUP_NAME__"
+}
 
 # Create a resource group if it doesn’t exist
 resource "azurerm_resource_group" "effortlessrg" {
@@ -257,4 +261,55 @@ resource "azurerm_virtual_machine_extension" "enable_effortless_audit" {
         "commandToExecute": "powershell.exe C:/ProgramData/chocolatey/bin/hab svc load effortless/audit-baseline --strategy at-once && powershell.exe C:/ProgramData/chocolatey/bin/hab svc load effortless/config-baseline --strategy at-once && C:/ProgramData/chocolatey/bin/hab config apply config-baseline.default 2 C:/tmp/hab_config.toml && C:/ProgramData/chocolatey/bin/hab config apply audit-baseline.default 2 C:/tmp/hab_config.toml"
     }
 SETTINGS
+}
+
+resource "azurerm_virtual_machine" "effortlessvm-rhel" {
+    name                  = "effortlessvm-rhel"
+    location              = "${var.azure_region}"
+    resource_group_name   = "${azurerm_resource_group.effortlessrg.name}"
+    network_interface_ids = ["${azurerm_network_interface.effortlessnic.id}"]
+    vm_size               = "Standard_E2s_v3"
+
+  # This means the OS Disk will be deleted when Terraform destroys the Virtual Machine
+  # NOTE: This may not be optimal in all cases.
+  delete_os_disk_on_termination = true
+
+    storage_os_disk {
+        name              = "osdisk"
+        caching           = "ReadWrite"
+        create_option     = "FromImage"
+        managed_disk_type = "Premium_LRS"
+    }
+
+    storage_image_reference {
+      id = "${data.azurerm_image.effortless-win2016.id}"
+    }
+
+
+    os_profile {
+        computer_name  = "effortless-rhel7"
+        admin_username = "${var.azure_image_user}"
+        admin_password = "${var.azure_image_password}"
+    }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  connection {
+      user     = "${var.azure_image_user}"
+      password = "${var.azure_image_password}"
+  }
+  provisioner "file" {
+        source      = "./files/hab_config.toml"
+        destination = "/tmp/hab_config.toml"
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "hab svc load effortless/audit-baseline --strategy at-once",
+      "hab svc load effortless/config-baseline --strategy at-once",
+      "hab config apply config-baseline.default 2 /tmp/hab_config.toml",
+      "hab config apply audit-baseline.default 2 /tmp/hab_config.toml"
+    ]
+  }
 }

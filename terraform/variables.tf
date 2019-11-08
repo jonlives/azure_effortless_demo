@@ -37,6 +37,10 @@ variable "tag_project" {
 variable "custom_win_image_name" {
   default = "jcowie-effortless-win2016"
 }
+
+variable "custom_rhel_image_name" {
+  default = "jcowie-effortless-rhel-7"
+}
 variable "custom_image_resource_group_name" {
   default = "jcowie"
 }
