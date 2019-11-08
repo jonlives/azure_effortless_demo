@@ -31,8 +31,8 @@
     "provisioners": [
         {
           "type": "file",
-          "source": "packer/inspec/inspec-a2.json",
-          "destination": "/tmp/inspec-a2.json"
+          "source": "packer/inspec/inspec-a2-linux.json",
+          "destination": "/tmp/inspec-a2-linux.json"
         },
         {
             "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
