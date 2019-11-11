@@ -75,7 +75,7 @@ resource "azurerm_public_ip" "effortlesspublicip" {
 
 # Create public IPs
 resource "azurerm_public_ip" "effortlesspublicip_linux" {
-    name                         = "${var.tag_customer}_${var.tag_project}_ip"
+    name                         = "${var.tag_customer}_${var.tag_project}_ip_linux"
     location                     = "${var.azure_region}"
     resource_group_name          = "${azurerm_resource_group.effortlessrg.name}"
     allocation_method            = "Dynamic"
