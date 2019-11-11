@@ -73,8 +73,26 @@ resource "azurerm_public_ip" "effortlesspublicip" {
     }
 }
 
+# Create public IPs
+resource "azurerm_public_ip" "effortlesspublicip_linux" {
+    name                         = "${var.tag_customer}_${var.tag_project}_ip"
+    location                     = "${var.azure_region}"
+    resource_group_name          = "${azurerm_resource_group.effortlessrg.name}"
+    allocation_method            = "Dynamic"
+    domain_name_label            = "effortless-${lower(substr("${join("", split(":", timestamp()))}", 8, -1))}"
+
+    tags = {
+        environment = "${var.tag_customer}_${var.tag_project}"
+    }
+}
+
 data "azurerm_public_ip" "effortlessip" {
   name                = "${azurerm_public_ip.effortlesspublicip.name}"
+  resource_group_name = "${azurerm_resource_group.effortlessrg.name}"
+}
+
+data "azurerm_public_ip" "effortlessip_linux" {
+  name                = "${azurerm_public_ip.effortlesspublicip_linux.name}"
   resource_group_name = "${azurerm_resource_group.effortlessrg.name}"
 }
 
@@ -121,6 +139,25 @@ resource "azurerm_network_security_group" "effortlessnsg" {
     }
 }
 
+# Create Network Security Group and rule
+resource "azurerm_network_security_group" "effortlessnsg_linux" {
+    name                = "${var.tag_customer}_${var.tag_project}_sg"
+    location            = "${var.azure_region}"
+    resource_group_name = "${azurerm_resource_group.effortlessrg.name}"
+    
+    security_rule {
+        name                       = "SSH"
+        priority                   = 1001
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "22"
+        source_address_prefix      = "*"
+        destination_address_prefix = "*"
+    }
+}
+
 # Create network interface
 resource "azurerm_network_interface" "effortlessnic" {
     name                      = "${var.tag_customer}_${var.tag_project}_nic"
@@ -139,6 +176,25 @@ resource "azurerm_network_interface" "effortlessnic" {
         environment = "${var.tag_customer}_${var.tag_project}"
     }
 }
+
+resource "azurerm_network_interface" "effortlessnic_linux" {
+    name                      = "${var.tag_customer}_${var.tag_project}_nic_linux"
+    location                  = "${var.azure_region}"
+    resource_group_name       = "${azurerm_resource_group.effortlessrg.name}"
+    network_security_group_id = "${azurerm_network_security_group.effortlessnsg_linux.id}"
+
+    ip_configuration {
+        name                          = "myNicConfiguration"
+        subnet_id                     = "${azurerm_subnet.effortlesssubnet.id}"
+        private_ip_address_allocation = "Dynamic"
+        public_ip_address_id          = "${azurerm_public_ip.effortlesspublicip_linux.id}"
+    }
+
+    tags = {
+        environment = "${var.tag_customer}_${var.tag_project}"
+    }
+}
+
 
 # Generate random text for a unique storage account name
 resource "random_id" "randomId" {
@@ -263,53 +319,53 @@ resource "azurerm_virtual_machine_extension" "enable_effortless_audit" {
 SETTINGS
 }
 
-# resource "azurerm_virtual_machine" "effortlessvm-rhel" {
-#     name                  = "effortlessvm-rhel"
-#     location              = "${var.azure_region}"
-#     resource_group_name   = "${azurerm_resource_group.effortlessrg.name}"
-#     network_interface_ids = ["${azurerm_network_interface.effortlessnic.id}"]
-#     vm_size               = "Standard_E2s_v3"
+resource "azurerm_virtual_machine" "effortlessvm-rhel" {
+    name                  = "effortlessvm-rhel"
+    location              = "${var.azure_region}"
+    resource_group_name   = "${azurerm_resource_group.effortlessrg.name}"
+    network_interface_ids = ["${azurerm_network_interface.effortlessnic_linux.id}"]
+    vm_size               = "Standard_E2s_v3"
 
-#   # This means the OS Disk will be deleted when Terraform destroys the Virtual Machine
-#   # NOTE: This may not be optimal in all cases.
-#   delete_os_disk_on_termination = true
+  # This means the OS Disk will be deleted when Terraform destroys the Virtual Machine
+  # NOTE: This may not be optimal in all cases.
+  delete_os_disk_on_termination = true
 
-#     storage_os_disk {
-#         name              = "osdisk"
-#         caching           = "ReadWrite"
-#         create_option     = "FromImage"
-#         managed_disk_type = "Premium_LRS"
-#     }
+    storage_os_disk {
+        name              = "osdisk"
+        caching           = "ReadWrite"
+        create_option     = "FromImage"
+        managed_disk_type = "Premium_LRS"
+    }
 
-#     storage_image_reference {
-#       id = "${data.azurerm_image.effortless-win2016.id}"
-#     }
+    storage_image_reference {
+      id = "${data.azurerm_image.effortless-rhel-7.id}"
+    }
 
 
-#     os_profile {
-#         computer_name  = "effortless-rhel7"
-#         admin_username = "${var.azure_image_user}"
-#         admin_password = "${var.azure_image_password}"
-#     }
+    os_profile {
+        computer_name  = "effortless-rhel7"
+        admin_username = "${var.azure_image_user}"
+        admin_password = "${var.azure_image_password}"
+    }
 
-#   os_profile_linux_config {
-#     disable_password_authentication = false
-#   }
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
 
-#   connection {
-#       user     = "${var.azure_image_user}"
-#       password = "${var.azure_image_password}"
-#   }
-#   provisioner "file" {
-#         source      = "./files/hab_config.toml"
-#         destination = "/tmp/hab_config.toml"
-#   }
-#   provisioner "remote-exec" {
-#     inline = [
-#       "hab svc load effortless/audit-baseline --strategy at-once",
-#       "hab svc load effortless/config-baseline --strategy at-once",
-#       "hab config apply config-baseline.default 2 /tmp/hab_config.toml",
-#       "hab config apply audit-baseline.default 2 /tmp/hab_config.toml"
-#     ]
-#   }
-# }
+  connection {
+      user     = "${var.azure_image_user}"
+      password = "${var.azure_image_password}"
+  }
+  provisioner "file" {
+        source      = "./files/hab_config.toml"
+        destination = "/tmp/hab_config.toml"
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "hab svc load effortless/audit-baseline --strategy at-once",
+      "hab svc load effortless/config-baseline --strategy at-once",
+      "hab config apply config-baseline.default 2 /tmp/hab_config.toml",
+      "hab config apply audit-baseline.default 2 /tmp/hab_config.toml"
+    ]
+  }
+}
