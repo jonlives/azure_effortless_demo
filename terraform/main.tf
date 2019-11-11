@@ -66,7 +66,7 @@ resource "azurerm_public_ip" "effortlesspublicip" {
     location                     = "${var.azure_region}"
     resource_group_name          = "${azurerm_resource_group.effortlessrg.name}"
     allocation_method            = "Dynamic"
-    domain_name_label            = "effortless-${lower(substr("${join("", split(":", timestamp()))}", 8, -1))}"
+    domain_name_label            = "effortless-win-${lower(substr("${join("", split(":", timestamp()))}", 8, -1))}"
 
     tags = {
         environment = "${var.tag_customer}_${var.tag_project}"
@@ -79,7 +79,7 @@ resource "azurerm_public_ip" "effortlesspublicip_linux" {
     location                     = "${var.azure_region}"
     resource_group_name          = "${azurerm_resource_group.effortlessrg.name}"
     allocation_method            = "Dynamic"
-    domain_name_label            = "effortless-${lower(substr("${join("", split(":", timestamp()))}", 8, -1))}"
+    domain_name_label            = "effortless-rhel-${lower(substr("${join("", split(":", timestamp()))}", 8, -1))}"
 
     tags = {
         environment = "${var.tag_customer}_${var.tag_project}"
