@@ -353,6 +353,7 @@ resource "azurerm_virtual_machine" "effortlessvm-rhel" {
   }
 
   connection {
+      host     = "${azurerm_public_ip.effortlesspublicip_linux.fqdn}"
       user     = "${var.azure_image_user}"
       password = "${var.azure_image_password}"
   }
