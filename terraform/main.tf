@@ -141,7 +141,7 @@ resource "azurerm_network_security_group" "effortlessnsg" {
 
 # Create Network Security Group and rule
 resource "azurerm_network_security_group" "effortlessnsg_linux" {
-    name                = "${var.tag_customer}_${var.tag_project}_sg"
+    name                = "${var.tag_customer}_${var.tag_project}_linux_sg"
     location            = "${var.azure_region}"
     resource_group_name = "${azurerm_resource_group.effortlessrg.name}"
     
