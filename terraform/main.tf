@@ -229,7 +229,7 @@ resource "azurerm_virtual_machine" "effortlessvm" {
     vm_size               = "Standard_E2s_v3"
 
     storage_os_disk {
-        name              = "osdisk"
+        name              = "effortlessdisk_win"
         caching           = "ReadWrite"
         create_option     = "FromImage"
         managed_disk_type = "Premium_LRS"
@@ -331,7 +331,7 @@ resource "azurerm_virtual_machine" "effortlessvm-rhel" {
   delete_os_disk_on_termination = true
 
     storage_os_disk {
-        name              = "osdisk"
+        name              = "effortlessdisk_rhel"
         caching           = "ReadWrite"
         create_option     = "FromImage"
         managed_disk_type = "Premium_LRS"
