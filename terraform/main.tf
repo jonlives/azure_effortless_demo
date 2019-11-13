@@ -352,21 +352,21 @@ resource "azurerm_virtual_machine" "effortlessvm-rhel" {
     disable_password_authentication = false
   }
 
-  connection {
-      host     = "${azurerm_public_ip.effortlesspublicip_linux.fqdn}"
-      user     = "${var.azure_image_user}"
-      password = "${var.azure_image_password}"
-  }
-  provisioner "file" {
-        source      = "./files/hab_config.toml"
-        destination = "/tmp/hab_config.toml"
-  }
-  provisioner "remote-exec" {
-    inline = [
-      "hab svc load effortless/audit-baseline --strategy at-once",
-      "hab svc load effortless/config-baseline --strategy at-once",
-      "hab config apply config-baseline.default 2 /tmp/hab_config.toml",
-      "hab config apply audit-baseline.default 2 /tmp/hab_config.toml"
-    ]
-  }
+#   connection {
+#       host     = "${azurerm_public_ip.effortlesspublicip_linux.fqdn}"
+#       user     = "${var.azure_image_user}"
+#       password = "${var.azure_image_password}"
+#   }
+#   provisioner "file" {
+#         source      = "./files/hab_config.toml"
+#         destination = "/tmp/hab_config.toml"
+#   }
+#   provisioner "remote-exec" {
+#     inline = [
+#       "hab svc load effortless/audit-baseline --strategy at-once",
+#       "hab svc load effortless/config-baseline --strategy at-once",
+#       "hab config apply config-baseline.default 2 /tmp/hab_config.toml",
+#       "hab config apply audit-baseline.default 2 /tmp/hab_config.toml"
+#     ]
+#   }
 }
