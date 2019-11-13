@@ -5,7 +5,9 @@
         "subscription_id": "{{env `ARM_SUBSCRIPTION_ID`}}",
         "tenant_id": "{{env `ARM_TENANT_ID`}}",
         "managed_image_resource_group_name": "{{env `TF_RESOURCE_GROUP_NAME`}}",
-        "managed_image_name": "{{env `TF_MANAGED_IMAGE_NAME_RHEL`}}"    
+        "managed_image_name": "{{env `TF_MANAGED_IMAGE_NAME_RHEL`}}",
+        "ssh_user": "azureuser",
+        "ssh_pass": "{{env `TF_INSTANCE_PASSWORD`}}"    
       },
     "builders": [{
       "type": "azure-arm",
@@ -18,10 +20,14 @@
       "managed_image_resource_group_name": "{{user `managed_image_resource_group_name`}}",
       "managed_image_name": "{{user `managed_image_name`}}",
   
+      "ssh_username": "{{user `ssh_user`}}",
+      "ssh_password": "{{user `ssh_pass`}}",
+
       "os_type": "Linux",
       "image_publisher": "Redhat",
       "image_offer": "RHEL",
       "image_sku": "7-LVM",
+      "ssh_pty": "true",
   
       "winrm_username": "packer",
   
