@@ -28,8 +28,6 @@
       "image_offer": "RHEL",
       "image_sku": "7-LVM",
       "ssh_pty": "true",
-
-      "winrm_username": "packer",
   
       "location": "East US",
       "vm_size": "Standard_E2s_v3"

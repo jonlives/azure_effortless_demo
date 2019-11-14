@@ -303,7 +303,7 @@ resource "azurerm_virtual_machine" "effortlessvm" {
   }
 }
 
-resource "azurerm_virtual_machine_extension" "enable_effortless_audit" {
+resource "azurerm_virtual_machine_extension" "enable_effortless_win" {
   name                 = "CustomScriptExtension"
   location             = "${var.azure_region}"
   resource_group_name  = "${azurerm_resource_group.effortlessrg.name}"
@@ -364,7 +364,7 @@ resource "azurerm_virtual_machine" "effortlessvm-rhel" {
   }
 }
 
-resource "azurerm_virtual_machine_extension" "enable_effortless_audit" {
+resource "azurerm_virtual_machine_extension" "enable_effortless_linux" {
   name                 = "CustomScriptExtension"
   location             = "${var.azure_region}"
   resource_group_name  = "${azurerm_resource_group.effortlessrg.name}"
