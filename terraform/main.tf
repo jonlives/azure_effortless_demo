@@ -348,23 +348,34 @@ resource "azurerm_virtual_machine" "effortlessvm-rhel" {
         admin_password = "${var.azure_image_password}"
     }
 
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
+    os_profile_linux_config {
+        disable_password_authentication = false
+    }
 
-  connection {
-      host     = "${azurerm_public_ip.effortlesspublicip_linux.fqdn}"
-      user     = "${var.azure_image_user}"
-      password = "${var.azure_image_password}"
-  }
   provisioner "file" {
+        connection {
+            type     = "ssh"
+            host     = "${azurerm_public_ip.effortlesspublicip_linux.fqdn}"
+            user     = "${var.azure_image_user}"
+            password = "${var.azure_image_password}"
+        }
         source      = "./files/hab_config.toml"
         destination = "/tmp/hab_config.toml"
   }
-  provisioner "remote-exec" {
-    inline = [
-      "hab config apply config-baseline.default 2 /tmp/hab_config.toml",
-      "hab config apply audit-baseline.default 2 /tmp/hab_config.toml"
-    ]
-  }
+}
+
+resource "azurerm_virtual_machine_extension" "enable_effortless_audit" {
+  name                 = "CustomScriptExtension"
+  location             = "${var.azure_region}"
+  resource_group_name  = "${azurerm_resource_group.effortlessrg.name}"
+  virtual_machine_name = "${azurerm_virtual_machine.effortlessvm-rhel.name}"
+  publisher = "Microsoft.OSTCExtensions"
+  type = "CustomScriptForLinux"
+  type_handler_version  = "1.2"
+
+  settings = <<SETTINGS
+    {
+        "commandToExecute": "hab svc load effortless/audit-baseline --strategy at-once && hab svc load effortless/config-baseline --strategy at-once && hab config apply config-baseline.default 2 /tmp/hab_config.toml && hab config apply audit-baseline.default 2 /tmp/hab_config.toml"
+    }
+SETTINGS
 }

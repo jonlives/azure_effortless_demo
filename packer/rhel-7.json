@@ -52,8 +52,10 @@
                 "sudo hab pkg install effortless/audit-baseline",
                 "cd $(hab pkg path effortless/config-baseline)",
                 "echo 'Starting Chef Client Run'",
+                "sudo hab pkg exec chef/chef-client chef-client -z -c config/bootstrap-config.rb",
                 "echo 'Starting Inspec Run'",
-                "cd `hab pkg path effortless/audit-baseline`"
+                "cd `hab pkg path effortless/audit-baseline`",
+                "sudo hab pkg exec chef/inspec inspec exec $(hab pkg path effortless/audit-baseline)/*.tar.gz --chef-license accept-no-persist --no-distinct-exit --json-config /tmp/inspec-a2-linux.json"
             ],
             "inline_shebang": "/bin/sh -x",
             "type": "shell"
