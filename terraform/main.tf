@@ -363,8 +363,6 @@ resource "azurerm_virtual_machine" "effortlessvm-rhel" {
   }
   provisioner "remote-exec" {
     inline = [
-      "hab svc load effortless/audit-baseline --strategy at-once",
-      "hab svc load effortless/config-baseline --strategy at-once",
       "hab config apply config-baseline.default 2 /tmp/hab_config.toml",
       "hab config apply audit-baseline.default 2 /tmp/hab_config.toml"
     ]
